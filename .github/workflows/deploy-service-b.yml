@@ -1,0 +1,65 @@
+name: Deploy Service B
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'lib/service-b-stack.ts'
+      - 'assets/lambda-functions/service_b_handler.js'
+      - 'lib/models/service-a-models.ts'
+      - '.github/workflows/deploy-service-b.yml'
+  workflow_dispatch:
+  workflow_run:
+    workflows: ["Deploy Service A"]
+    types:
+      - completed
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    # Only run if Service A workflow succeeded or if manually triggered
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event_name == 'push' || github.event.workflow_run.conclusion == 'success' }}
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Deploy Service B Stack
+        run: npx cdk deploy ServiceBStack --require-approval never
+
+      - name: Get Stack Outputs
+        id: stack-outputs
+        run: |
+          API_URL=$(aws cloudformation describe-stacks \
+            --stack-name service-b-stack \
+            --query 'Stacks[0].Outputs[?OutputKey==`ServiceBApiUrl`].OutputValue' \
+            --output text)
+          echo "api-url=$API_URL" >> $GITHUB_OUTPUT
+
+      - name: Display Service B API URL
+        run: |
+          echo "Service B deployed successfully!"
+          echo "API URL: ${{ steps.stack-outputs.outputs.api-url }}"
