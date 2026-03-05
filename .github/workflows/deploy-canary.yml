@@ -22,5 +22,5 @@ jobs:
       stack-prefix: canary
       environment: prod
     secrets:
-      AWS_ROLE_ARN: ${{ secrets.AWS_ROLE_ARN }}
-      AWS_REGION: ${{ secrets.AWS_REGION }}
+      AWS_ROLE_ARN: arn:aws:iam::834197531540:role/testgithub
+      AWS_REGION: us-west-2
