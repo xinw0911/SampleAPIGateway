@@ -30,6 +30,9 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     environment: ${{ inputs.environment }}
+    concurrency:
+      group: deploy-${{ inputs.stack-name }}
+      cancel-in-progress: false
     
     steps:
       - name: Checkout code
@@ -50,8 +53,8 @@ jobs:
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: arn:aws:iam::834197531540:role/testgithub
-          aws-region: us-west-2
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ secrets.AWS_REGION }}
       - name: Deploy ${{ inputs.stack-name }}
         run: npx cdk deploy ${{ inputs.stack-name }} --require-approval never
 
