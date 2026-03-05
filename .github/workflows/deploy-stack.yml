@@ -62,7 +62,9 @@ jobs:
             --stack-name ${{ inputs.stack-prefix }}-stack \
             --query 'Stacks[0].Outputs' \
             --output json)
-          echo "outputs=$OUTPUT" >> $GITHUB_OUTPUT
+          echo "outputs<<EOF" >> $GITHUB_OUTPUT
+          echo "$OUTPUT" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
 
       - name: Display Deployment Info
         run: |
