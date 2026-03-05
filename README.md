@@ -150,27 +150,40 @@ npx cdk deploy --all
 
 ### CI/CD Deployment
 
-The project includes three GitHub Actions workflows for independent deployment:
+The project uses a reusable workflow pattern for consistent deployment across all stacks:
+
+#### Reusable Workflow (`deploy-stack.yml`)
+- Shared deployment logic for all stacks
+- Handles build, AWS authentication, CDK deployment, and output retrieval
+- Accepts stack name and prefix as inputs
 
 #### Service A Workflow
 - **Trigger**: Changes to `lib/service-a-stack.ts`, `assets/lambda-functions/service_a_handler.js`, `lib/models/service-a-models.ts`, or manual trigger
-- **Deploys**: ServiceAStack only
-- **Post-Deploy**: Automatically triggers Service B deployment workflow
+- **Deploys**: ServiceAStack, then automatically triggers ServiceBStack deployment
+- **Pattern**: Uses reusable workflow with `needs` dependency to chain Service B deployment
 - **File**: `.github/workflows/deploy-service-a.yml`
 
 #### Service B Workflow
-- **Trigger**: Changes to `lib/service-b-stack.ts`, `assets/lambda-functions/service_b_handler.js`, `lib/models/service-a-models.ts`, manual trigger, or after Service A deployment completes
+- **Trigger**: Changes to `lib/service-b-stack.ts`, `assets/lambda-functions/service_b_handler.js`, `lib/models/service-a-models.ts`, or manual trigger
 - **Deploys**: ServiceBStack only
+- **Pattern**: Uses reusable workflow, can be called from Service A workflow or run independently
 - **File**: `.github/workflows/deploy-service-b.yml`
 
 #### Canary Workflow
-- **Trigger**: Changes to `lib/canary-stack.ts`, `assets/lambda-functions/canary_handler.js`, manual trigger, or after Service B deployment completes
+- **Trigger**: Changes to `lib/canary-stack.ts`, `assets/lambda-functions/canary_handler.js`, or manual trigger
 - **Deploys**: CanaryStack only
+- **Pattern**: Uses reusable workflow
 - **File**: `.github/workflows/deploy-canary.yml`
 
 #### Required GitHub Secrets
+Configure these secrets in your GitHub repository's `prod` environment:
 - `AWS_ROLE_ARN`: IAM role ARN for GitHub Actions OIDC
 - `AWS_REGION`: AWS region for deployment
+
+The `prod` environment enables:
+- Environment protection rules (e.g., required reviewers)
+- Environment-specific secrets and variables
+- Deployment history and tracking
 
 ## Testing
 

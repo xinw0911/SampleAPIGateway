@@ -1,0 +1,72 @@
+name: Deploy Stack (Reusable)
+
+on:
+  workflow_call:
+    inputs:
+      stack-name:
+        required: true
+        type: string
+        description: 'CDK Stack name to deploy (e.g., ServiceAStack, ServiceBStack, CanaryStack)'
+      stack-prefix:
+        required: true
+        type: string
+        description: 'Stack prefix for outputs (e.g., service-a, service-b, canary)'
+      environment:
+        required: false
+        type: string
+        default: 'prod'
+        description: 'GitHub environment to use for deployment'
+    secrets:
+      AWS_ROLE_ARN:
+        required: true
+      AWS_REGION:
+        required: true
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Deploy ${{ inputs.stack-name }}
+        run: npx cdk deploy ${{ inputs.stack-name }} --require-approval never
+
+      - name: Get Stack Outputs
+        id: stack-outputs
+        run: |
+          OUTPUT=$(aws cloudformation describe-stacks \
+            --stack-name ${{ inputs.stack-prefix }}-stack \
+            --query 'Stacks[0].Outputs' \
+            --output json)
+          echo "outputs=$OUTPUT" >> $GITHUB_OUTPUT
+
+      - name: Display Deployment Info
+        run: |
+          echo "${{ inputs.stack-name }} deployed successfully!"
+          echo "Stack outputs:"
+          echo '${{ steps.stack-outputs.outputs.outputs }}' | jq '.'
