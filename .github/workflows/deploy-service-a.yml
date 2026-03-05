@@ -23,9 +23,8 @@ jobs:
       stack-prefix: service-a
       environment: prod
     secrets:
-      AWS_ROLE_ARN: ${{ secrets.AWS_ROLE_ARN }}
-      AWS_REGION: ${{ secrets.AWS_REGION }}
-
+      AWS_ROLE_ARN: arn:aws:iam::834197531540:role/testgithub
+      AWS_REGION: us-west-2
   deploy-service-b:
     needs: deploy-service-a
     uses: ./.github/workflows/deploy-stack.yml
@@ -34,5 +33,5 @@ jobs:
       stack-prefix: service-b
       environment: prod
     secrets:
-      AWS_ROLE_ARN: ${{ secrets.AWS_ROLE_ARN }}
-      AWS_REGION: ${{ secrets.AWS_REGION }}
+      AWS_ROLE_ARN: arn:aws:iam::834197531540:role/testgithub
+      AWS_REGION: us-west-2
