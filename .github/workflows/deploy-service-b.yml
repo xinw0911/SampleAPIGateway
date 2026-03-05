@@ -9,6 +9,7 @@ on:
       - 'assets/lambda-functions/service_b_handler.js'
       - 'lib/models/service-a-models.ts'
       - '.github/workflows/deploy-service-b.yml'
+      - '.github/workflows/deploy-stack.yml'
   workflow_dispatch:
 
 permissions:

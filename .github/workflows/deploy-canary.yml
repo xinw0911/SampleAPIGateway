@@ -8,6 +8,7 @@ on:
       - 'lib/canary-stack.ts'
       - 'assets/lambda-functions/canary_handler.js'
       - '.github/workflows/deploy-canary.yml'
+      - '.github/workflows/deploy-stack.yml'
   workflow_dispatch:
 
 permissions:
