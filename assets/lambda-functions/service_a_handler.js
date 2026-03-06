@@ -18,7 +18,7 @@ exports.handler = async (event) => {
 
     // Job item to be saved in DynamoDB
     const jobItem = {
-        jobId,
+        id: jobId,
         status,
         createdAt,
     };
@@ -33,10 +33,10 @@ exports.handler = async (event) => {
         const command = new PutCommand(params);
         await dynamoDBClient.send(command);
 
-        // Return the jobId to the client immediately
+        // Return the id to the client immediately
         const response = {
             statusCode: 200,
-            body: JSON.stringify({ jobId }),  // Return jobId to the client
+            body: JSON.stringify({ id: jobId }),
         };
 
         // Return jobId immediately

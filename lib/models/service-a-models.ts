@@ -3,6 +3,9 @@
  * 
  * These models define the contract between Service A and its consumers (like Service B).
  * Any changes to these models may require updates to dependent services.
+ * 
+ * BREAKING CHANGE: Renamed jobId to id, changed endpoint from /job to /task,
+ * and updated status values.
  */
 
 export interface JobRequest {
@@ -11,13 +14,14 @@ export interface JobRequest {
 }
 
 export interface JobResponse {
-  jobId: string;
+  id: string;
 }
 
 export interface JobStatus {
-  jobId: string;
-  status: 'Processed' | 'Failed' | 'Pending';
+  id: string;
+  status: 'Completed' | 'Error' | 'InProgress';
   createdAt: string;
+  updatedAt: string;
 }
 
 export interface DeleteResponse {
@@ -34,9 +38,9 @@ export interface ErrorResponse {
  * Service A API Endpoints
  */
 export const ServiceAEndpoints = {
-  CREATE_JOB: '/job',
-  GET_JOB: '/job/{jobId}',
-  DELETE_ALL: '/job',
+  CREATE_JOB: '/task',
+  GET_JOB: '/task/{id}',
+  DELETE_ALL: '/task',
 } as const;
 
 /**
