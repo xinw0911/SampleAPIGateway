@@ -68,10 +68,10 @@ export class ServiceAStack extends cdk.Stack {
       }
     });
 
-    // POST /job method
-    const job = api.root.addResource('job');
+    // POST /task method
+    const task = api.root.addResource('task');
 
-    job.addMethod("POST",
+    task.addMethod("POST",
       new LambdaIntegration(jobHandler, {
         proxy: false,
         requestParameters: {
@@ -87,7 +87,7 @@ export class ServiceAStack extends cdk.Stack {
           {
             statusCode: '200',
             responseTemplates: {
-              'application/json': `{"jobId": "$context.requestId"}`
+              'application/json': `{"id": "$context.requestId"}`
             }
           },
           {
@@ -109,8 +109,8 @@ export class ServiceAStack extends cdk.Stack {
       }
     );
 
-    // DELETE /job method (delete all records)
-    job.addMethod("DELETE",
+    // DELETE /task method (delete all records)
+    task.addMethod("DELETE",
       new LambdaIntegration(jobHandler, {
         proxy: false,
         requestTemplates: {
@@ -144,9 +144,9 @@ export class ServiceAStack extends cdk.Stack {
       }
     );
 
-    // GET /job/{jobId} method (DynamoDB integration)
-    const jobId = job.addResource('{jobId}');
-    jobId.addMethod("GET",
+    // GET /task/{id} method (DynamoDB integration)
+    const taskId = task.addResource('{id}');
+    taskId.addMethod("GET",
       new AwsIntegration({
         service: 'dynamodb',
         action: 'GetItem',
@@ -169,7 +169,7 @@ export class ServiceAStack extends cdk.Stack {
               "TableName": "${this.jobTable.tableName}",
               "Key": {
                 "jobId": {
-                  "S": "$input.params('jobId')"
+                  "S": "$input.params('id')"
                 }
               }
             }`,
@@ -179,7 +179,7 @@ export class ServiceAStack extends cdk.Stack {
               statusCode: '200',
               responseTemplates: {
                 'application/json': `{
-                  "jobId": "$input.path('$.Item.jobId.S')",
+                  "id": "$input.path('$.Item.jobId.S')",
                   "status": "$input.path('$.Item.status.S')",
                   "createdAt": "$input.path('$.Item.createdAt.S')"
                 }`
